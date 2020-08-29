@@ -1,7 +1,7 @@
 import logging
 import os
 from flask import Flask
-from snacks import db
+from snacks import db, errors
 
 # Taken mostly wholesale from the Flaskr tutorial
 def create_app():
@@ -19,5 +19,7 @@ def create_app():
 
     db.init_app(app)
     db.init_db(app)
+
+    errors.register_errors(app)
 
     return app

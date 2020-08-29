@@ -8,7 +8,7 @@ The API is served by Flask and runs a SQLite DB
 
 ## Workflow
 
-* A new snack can be created at `POST /snacks`  
+* A new snack can be created at `POST /snacks` but it must have a unique name 
 * A list of all snacks can be returned with `GET /snacks`  
 * A specific snack can be returned with `GET /snacks/:snackid`
 

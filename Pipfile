@@ -10,6 +10,7 @@ coverage = "*"
 [packages]
 flask = "*"
 pugsql = "*"
+jsonschema = "*"
 
 [requires]
 python_version = "3.8"

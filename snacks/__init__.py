@@ -1,10 +1,11 @@
-import logging
+from logging.config import dictConfig
 import os
 from flask import Flask
 from snacks import db, errors, routes
 
 # Taken mostly wholesale from the Flaskr tutorial
 def create_app():
+    configure_logging()
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
         SECRET_KEY='tasty_snacks',
@@ -25,3 +26,20 @@ def create_app():
     app.register_blueprint(routes.bp)
 
     return app
+
+def configure_logging():
+    dictConfig({
+        'version': 1,
+        'formatters': {'default': {
+            'format': '%(asctime)s %(levelname)s [%(name)s] %(message)s',
+        }},
+        'handlers': {'wsgi': {
+            'class': 'logging.StreamHandler',
+            'stream': 'ext://flask.logging.wsgi_errors_stream',
+            'formatter': 'default'
+        }},
+        'root': {
+            'level': 'INFO',
+            'handlers': ['wsgi']
+        }
+    })

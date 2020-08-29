@@ -50,10 +50,7 @@ def new_snack() -> dict:
         abort(400, err.message)
     
     return make_response(
-        jsonify(
-            message='new snack created',
-            id=result
-        ),
+        jsonify(id=result),
         201)
 
 

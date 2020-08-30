@@ -8,7 +8,64 @@ from snackdrawer import users
 from tests.test_fixtures import sqlite_db
 
 class RoutesTestCase(unittest.TestCase):
-    pass
+    def setUp(self):
+        logging.disable(logging.CRITICAL)
+        self.app = snackdrawer.create_app()
+        self.client = self.app.test_client()
+        sqlite_db.purge_db()
+        sqlite_db.pollute_db(self.app.config['DATABASE'])
+
+    def tearDown(self):
+        pass
+
+    def test_new_user(self):
+        data = {
+            'username': 'cookiemonster',
+            'password': 'lovecookies'
+        }
+        expect = {
+            'id': 3,
+            'username': 'cookiemonster'
+        }
+        result = self.client.post(
+            '/auth/users',
+            json=data
+        )
+
+        self.assertEqual(201, result.status_code)
+        self.assertDictEqual(expect, result.get_json())
+
+    def test_new_user_existing(self):
+        data = {
+            'username': 'foobar',
+            'password': 'sneaky'
+        }
+        result = self.client.post(
+            '/auth/users',
+            json=data
+        )
+
+        self.assertEqual(422, result.status_code)
+
+    def test_new_user_invalid(self):
+        data = {
+            'foo': 'bar'
+        }
+        result = self.client.post(
+            '/auth/users',
+            json=data
+        )
+
+        self.assertEqual(400, result.status_code)
+
+    def test_validate_user(self):
+        pass
+
+    def test_validate_user_nonexistent(self):
+        pass
+
+    def test_validate_user_invalid(self):
+        pass
 
 class UsersTestCase(unittest.TestCase):
     def setUp(self):

@@ -21,6 +21,7 @@ def pollute_db(database):
     connection = pugsql.module('tests/test_fixtures/queries/')
     connection.connect(f'sqlite:///{database}')
     connection.populate_snacks()
+    connection.populate_users()
 
 def delete_snacks():
     app = snackdrawer.create_app()

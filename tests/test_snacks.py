@@ -105,7 +105,7 @@ class RoutesTestCase(unittest.TestCase):
         )
         self.assertEqual(400, result.status_code)
 
-class SnackTestCase(unittest.TestCase):
+class SnacksTestCase(unittest.TestCase):
     def setUp(self):
         logging.disable(logging.CRITICAL)
         self.app = snackdrawer.create_app()

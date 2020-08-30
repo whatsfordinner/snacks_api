@@ -13,6 +13,7 @@ flask = "*"
 pugsql = "*"
 jsonschema = "*"
 passlib = "*"
+pyjwt = "*"
 
 [requires]
 python_version = "3.8"

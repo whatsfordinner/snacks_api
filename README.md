@@ -11,6 +11,8 @@ The API is served by Flask and runs a SQLite DB
 * A new snack can be created at `POST /snacks` but it must have a unique name 
 * A list of all snacks can be returned with `GET /snacks`  
 * A specific snack can be returned with `GET /snacks/:snackid`
+* A new user can be created with at `POST /auth/users` but users must have a unique username
+* An existing user can get a JWT at `POST /auth/login`
 
 ## Lazy mode - TODO 
 

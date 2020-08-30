@@ -1,7 +1,7 @@
 from logging.config import dictConfig
 import os
 from flask import Flask
-from snacks import db, errors, routes
+from snackdrawer import db, errors, snacks
 
 # Taken mostly wholesale from the Flaskr tutorial
 def create_app():
@@ -28,7 +28,7 @@ def create_app():
 
     errors.register_errors(app)
 
-    app.register_blueprint(routes.bp)
+    app.register_blueprint(snacks.bp)
 
     return app
 

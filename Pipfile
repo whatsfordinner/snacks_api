@@ -12,6 +12,7 @@ locust = "*"
 flask = "*"
 pugsql = "*"
 jsonschema = "*"
+passlib = "*"
 
 [requires]
 python_version = "3.8"

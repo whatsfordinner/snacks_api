@@ -24,10 +24,13 @@ The API is served by Flask and runs a SQLite DB
  |`LAZY_UTIL_SLOW`|`int` > 0|Utility requests (E.g. schema validation) will have their responses delayed by this many milliseconds +/- 10%|
  |`LAZY_UTIL_ERROR`|0 <= `int` <= 100|Utility requests will throw exceptions at this rate|
 
+## Load Testing - TODO
+
+Once the API is running, it can be load tested using locust
 
 ## Wishlist
 
 If I get the basic bits working, I'd like to add:
+* an auth workflow that involves a user registering and then hitting an auth endpoint to receive a JWT
 * locust.io load testing
 * switching data stores so comparative testing can be done  
-* an auth workflow that involves a user registering and then hitting an auth endpoint to receive a JWT

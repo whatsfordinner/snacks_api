@@ -4,7 +4,7 @@ from flask import current_app, g
 
 def get_db():
     if 'db' not in g:
-        conn = pugsql.module('snacks/queries/')
+        conn = pugsql.module('snackdrawer/queries/')
         conn.connect(f'sqlite:///{current_app.config["DATABASE"]}')
         g.db = conn
     
@@ -17,9 +17,12 @@ def close_db(e=None):
         db.disconnect()
 
 def init_db(app):
-    db = pugsql.module('snacks/queries/')
+    db = pugsql.module('snackdrawer/queries/')
     db.connect(f'sqlite:///{app.config["DATABASE"]}')
     db.create_snacks()
+    db.create_users()
+    db.create_drawers()
+    db.create_drawercontents()
     db.disconnect()
 
 def init_app(app):

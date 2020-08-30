@@ -6,5 +6,5 @@ RUN pipenv lock --requirements > requirements.txt
 RUN apk add --no-cache --virtual build-deps gcc musl-dev libressl-dev libffi-dev && \
 pip install -r requirements.txt && \
 pip install uwsgi
-COPY ./snacks ./snacks
-CMD ["uwsgi", "--http", "0.0.0.0:5000", "--module", "snacks:create_app()"]
+COPY ./snackdrawer ./snackdrawer
+CMD ["uwsgi", "--http", "0.0.0.0:5000", "--module", "snackdrawer:create_app()"]

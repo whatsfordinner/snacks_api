@@ -1,4 +1,4 @@
 [run]
 branch = true
 command_line = -m unittest -v
-source = snacks
+source = snackdrawer

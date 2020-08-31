@@ -4,6 +4,7 @@ import jwt
 import logging
 import snackdrawer
 import unittest
+from flask import jsonify, make_response
 from snackdrawer import users
 from tests.test_fixtures import sqlite_db
 
@@ -296,3 +297,55 @@ class UsersTestCase(unittest.TestCase):
             with self.assertRaises(jwt.ExpiredSignature):
                 users.validate_jwt(data, 'secret')
         
+class JwtTestCase(unittest.TestCase):
+    def setUp(self):
+        logging.disable(logging.CRITICAL)
+        self.app = snackdrawer.create_app()
+        self.client = self.app.test_client()
+        self.app.add_url_rule('/test','example_func', self.example_func, methods=['POST'])
+        sqlite_db.purge_db()
+        sqlite_db.pollute_db(self.app.config['DATABASE'])
+
+    def tearDown(self):
+        pass
+
+    @staticmethod
+    @users.jwt_required
+    def example_func(user):
+        return make_response(
+            jsonify(user),
+            200
+        )
+
+    def test_jwt_required(self):
+        token = users.generate_jwt(1, self.app.config['SECRET_KEY'])
+        token = token.decode('UTF-8')
+        expect = {
+            'id': 1,
+            'username': 'foobar'
+        }
+        result = self.client.post(
+            '/test',
+            headers={
+                'x-access-token': token
+            }
+        )
+
+        self.assertEqual(200, result.status_code)
+        self.assertDictEqual(expect, result.get_json())
+
+    def test_jwt_required_no_jwt(self):
+        result = self.client.post('/test')
+
+        self.assertEqual(401, result.status_code)
+
+    def test_jwt_required_invalid_jwt(self):
+        token = 'totallyfaketoken'
+        result = self.client.post(
+            '/test',
+            headers={
+                'x-access-token': token
+            }
+        )
+
+        self.assertEqual(401, result.status_code)

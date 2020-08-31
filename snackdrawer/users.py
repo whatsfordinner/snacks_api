@@ -3,6 +3,7 @@ import json
 import jsonschema
 import jwt
 from flask import abort, Blueprint, current_app, jsonify, make_response, request
+from functools import wraps
 from passlib.apps import custom_app_context
 from snackdrawer import db
 from snackdrawer.validate import validate_data
@@ -97,3 +98,21 @@ def generate_jwt(user_id, secret):
 def validate_jwt(jwt_payload, secret) -> dict:
     decoded = jwt.decode(jwt_payload, secret, audience='snackdrawer', algorithms=['HS256'])
     return find_by_userid(int(decoded['user']))
+
+def jwt_required(f):
+    @wraps(f)
+    def decorator(*args, **kwargs):
+        if 'x-access-token' not in request.headers:
+            return abort(401, description='no authentication token')
+        
+        try:
+            user = validate_jwt(
+                request.headers['x-access-token'],
+                current_app.config['SECRET_KEY']
+            )
+        
+        except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+            return abort(401, description='invalid authentication token')
+
+        return f(user, *args, **kwargs)
+    return decorator

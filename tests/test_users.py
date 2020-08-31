@@ -59,13 +59,59 @@ class RoutesTestCase(unittest.TestCase):
         self.assertEqual(400, result.status_code)
 
     def test_validate_user(self):
-        pass
+        data = {
+            'username': 'foobar',
+            'password': 'qux'
+        }
+        result = self.client.post(
+            '/auth/login',
+            json=data
+        )
+        jwt_payload = result.get_json()['token']
+        jwt_payload = jwt.decode(
+            jwt_payload,
+            'tasty_snacks',
+            audience='snackdrawer',
+            algorithms=['HS256']
+        )
+
+        self.assertEqual(201, result.status_code)
+        self.assertEqual('1', jwt_payload['user'])
 
     def test_validate_user_nonexistent(self):
-        pass
+        data = {
+            'username': 'beetles',
+            'password': 'notimportant'
+        }
+        result = self.client.post(
+            '/auth/login',
+            json=data
+        )
+
+        self.assertEqual(401, result.status_code)
+
+    def test_validate_user_bad_creds(self):
+        data = {
+            'username': 'foobar',
+            'password': 'wrongpass'
+        }
+        result = self.client.post(
+            '/auth/login',
+            json=data
+        )
+
+        self.assertEqual(401, result.status_code)
 
     def test_validate_user_invalid(self):
-        pass
+        data = {
+            'foo': 'bar'
+        }
+        result = self.client.post(
+            '/auth/login',
+            json=data
+        )
+
+        self.assertEqual(400, result.status_code)
 
 class UsersTestCase(unittest.TestCase):
     def setUp(self):

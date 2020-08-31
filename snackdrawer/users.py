@@ -39,8 +39,8 @@ def validate_user() -> dict:
     except ValueError as err:
         abort(401, description=err)
     
-    except (jwt.ExpiredSignature, jwt.InvalidTokenError) as err:
-        abort(401, description=err)
+    except jsonschema.ValidationError as err:
+        abort(400, description=err.message)
     
     return make_response(
         jsonify(token=new_jwt.decode('UTF-8')),

@@ -3,7 +3,7 @@ from flask import Flask, jsonify, make_response
 def register_errors(app):
     app.logger.info('registering error handlers')
     app.register_error_handler(400, bad_request)
-    app.register_error_handler(401, bad_request)
+    app.register_error_handler(401, unauthorized)
     app.register_error_handler(404, resource_not_found)
     app.register_error_handler(405, method_not_allowed)
     app.register_error_handler(422, unprocessable_entity)

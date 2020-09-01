@@ -103,7 +103,7 @@ def jwt_required(f):
     @wraps(f)
     def decorator(*args, **kwargs):
         if 'x-access-token' not in request.headers:
-            return abort(401, description='no authentication token')
+            abort(401, description='no authentication token')
         
         try:
             user = validate_jwt(
@@ -112,7 +112,7 @@ def jwt_required(f):
             )
         
         except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
-            return abort(401, description='invalid authentication token')
+            abort(401, description='invalid authentication token')
 
         return f(user, *args, **kwargs)
     return decorator

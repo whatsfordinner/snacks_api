@@ -3,6 +3,7 @@ import logging
 import snackdrawer
 import unittest
 from snackdrawer import snacks
+from snackdrawer.users import generate_jwt
 from tests.test_fixtures import sqlite_db
 
 class RoutesTestCase(unittest.TestCase):
@@ -67,6 +68,7 @@ class RoutesTestCase(unittest.TestCase):
         self.assertEqual(400, result.status_code)
 
     def test_create_snack(self):
+        token = generate_jwt(1, self.app.config['SECRET_KEY']).decode('UTF-8')
         expect = {
             'snack': {
                 'id': 4,
@@ -77,7 +79,10 @@ class RoutesTestCase(unittest.TestCase):
 
         result_post = self.client.post(
             '/snacks/',
-            json=data
+            json=data,
+            headers={
+                'x-access-token': token
+            }
         )
         self.assertEqual(201, result_post.status_code)
         self.assertDictEqual(expect, result_post.get_json())
@@ -86,24 +91,40 @@ class RoutesTestCase(unittest.TestCase):
         self.assertEqual(200, result_get.status_code)
         self.assertDictEqual(expect, result_get.get_json())
 
-
     def test_create_nonunique_snack(self):
+        token = generate_jwt(1, self.app.config['SECRET_KEY']).decode('UTF-8')
         data = {'name': 'chocolate'}
 
         result = self.client.post(
             '/snacks/',
-            json=data
+            json=data,
+            headers={
+                'x-access-token': token
+            }
         )
         self.assertEqual(422, result.status_code)
 
     def test_invalid_data(self):
+        token = generate_jwt(1, self.app.config['SECRET_KEY']).decode('UTF-8')
         data = {'foo': 'bar'}
 
         result = self.client.post(
             '/snacks/',
-            json=data
+            json=data,
+            headers={
+                'x-access-token': token
+            }
         )
         self.assertEqual(400, result.status_code)
+
+    def test_create_no_jwt(self):
+        data = {'name':'pretzels'}
+
+        result_post = self.client.post(
+            '/snacks/',
+            json=data
+        )
+        self.assertEqual(401, result_post.status_code)
 
 class SnacksTestCase(unittest.TestCase):
     def setUp(self):

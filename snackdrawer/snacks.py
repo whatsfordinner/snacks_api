@@ -1,6 +1,7 @@
 import jsonschema
 from flask import abort, Blueprint, current_app, jsonify, make_response, request
 from snackdrawer import db
+from snackdrawer.users import jwt_required
 from snackdrawer.validate import validate_data
 
 bp = Blueprint('snacks', __name__, url_prefix='/snacks')
@@ -27,9 +28,9 @@ def get_snack(snack_id: int) -> dict:
         jsonify(snack=result),
         200
     )
-
 @bp.route('/', methods=['POST'])
-def new_snack() -> dict:
+@jwt_required
+def new_snack(user) -> dict:
     try:
         request_data = request.get_json()
         result = to_db(request_data)

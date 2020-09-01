@@ -30,7 +30,7 @@ def get_snack(snack_id: int) -> dict:
     )
 @bp.route('/', methods=['POST'])
 @jwt_required
-def new_snack(user) -> dict:
+def new_snack(user_claims) -> dict:
     try:
         request_data = request.get_json()
         result = to_db(request_data)

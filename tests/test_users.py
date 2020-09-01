@@ -250,14 +250,15 @@ class UsersTestCase(unittest.TestCase):
                     'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=30),
                     'iat': datetime.datetime.utcnow(),
                     'aud': 'snackdrawer',
-                    'user': 1
+                    'user': 1,
+                    'role': 'user'
                 },
                 'secret',
                 algorithm='HS256'
             )
             expect = {
-                'id': 1,
-                'username': 'foobar'
+                'user': 1,
+                'role': 'user'
             }
             result = users.validate_jwt(data, 'secret')
         
@@ -271,7 +272,8 @@ class UsersTestCase(unittest.TestCase):
                     'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=30),
                     'iat': datetime.datetime.utcnow(),
                     'aud': 'snackdrawer',
-                    'user': 1
+                    'user': 1,
+                    'role': 'user'
                 },
                 'wrongsecret',
                 algorithm='HS256'
@@ -288,7 +290,8 @@ class UsersTestCase(unittest.TestCase):
                     'exp': datetime.datetime.utcnow() - datetime.timedelta(days=1) + datetime.timedelta(seconds=30),
                     'iat': datetime.datetime.utcnow() - datetime.timedelta(days=1),
                     'aud': 'snackdrawer',
-                    'user': 1
+                    'user': 1,
+                    'role': 'user'
                 },
                 'secret',
                 algorithm='HS256'
@@ -321,8 +324,8 @@ class JwtTestCase(unittest.TestCase):
         token = users.generate_jwt(1, self.app.config['SECRET_KEY'])
         token = token.decode('UTF-8')
         expect = {
-            'id': 1,
-            'username': 'foobar'
+            'user': 1,
+            'role': 'user'
         }
         result = self.client.post(
             '/test',

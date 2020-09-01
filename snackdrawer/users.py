@@ -86,7 +86,8 @@ def generate_jwt(user_id, secret):
         'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=30),
         'iat': datetime.datetime.utcnow(),
         'aud': 'snackdrawer',
-        'user': str(user_id)
+        'user': str(user_id),
+        'role': 'user'
     }
 
     return jwt.encode(
@@ -97,7 +98,10 @@ def generate_jwt(user_id, secret):
 
 def validate_jwt(jwt_payload, secret) -> dict:
     decoded = jwt.decode(jwt_payload, secret, audience='snackdrawer', algorithms=['HS256'])
-    return find_by_userid(int(decoded['user']))
+    return {
+        'user': int(decoded['user']),
+        'role': decoded['role']
+    }
 
 def jwt_required(f):
     @wraps(f)
@@ -106,7 +110,7 @@ def jwt_required(f):
             abort(401, description='no authentication token')
         
         try:
-            user = validate_jwt(
+            user_claims = validate_jwt(
                 request.headers['x-access-token'],
                 current_app.config['SECRET_KEY']
             )
@@ -114,5 +118,5 @@ def jwt_required(f):
         except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
             abort(401, description='invalid authentication token')
 
-        return f(user, *args, **kwargs)
+        return f(user_claims, *args, **kwargs)
     return decorator

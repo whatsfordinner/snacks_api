@@ -1,12 +1,14 @@
 from logging.config import dictConfig
 import os
 from flask import Flask
-from snackdrawer import db, errors, snacks, users
+from snackdrawer import db, drawers, errors, snacks, users
 
 # Taken mostly wholesale from the Flaskr tutorial
 def create_app():
     configure_logging()
     app = Flask(__name__, instance_relative_config=True)
+    # TODO: need to make the DB backend switchable in future
+    # TODO: need to be able to source config from environment
     app.config.from_mapping(
         SECRET_KEY='tasty_snacks',
         DATABASE=os.path.join(app.instance_path, 'snacks.sqlite'),
@@ -15,6 +17,7 @@ def create_app():
     try:
         os.makedirs(app.instance_path)
     except OSError:
+        # TODO: need to log fatally here
         pass
 
     db.init_app(app)
@@ -24,9 +27,11 @@ def create_app():
 
     app.register_blueprint(users.bp)
     app.register_blueprint(snacks.bp)
+    app.register_blueprint(drawers.bp)
 
     return app
 
+# TODO: this doesn't seem to work right with access logging
 def configure_logging():
     dictConfig({
         'version': 1,

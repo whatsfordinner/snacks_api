@@ -18,3 +18,31 @@ INSERT INTO users (username, password_hash) VALUES (
     'xyzzy',
     '$6$rounds=656000$V4Rw6qjBE7BgJgJF$/xQMjQzFsl3l62PJj9ddsYDCJOwg7em8R5Q3eqgBC5J/x6ys66go4AkVSonKsvczjMpCJmLR7xoYOzDDq8jZu.'
 )
+
+-- :name populate_drawers
+INSERT INTO drawers (name, userid) VALUES (
+    'foo',
+    1
+),
+(
+    'bar',
+    1
+),
+(
+    'baz',
+    2
+)
+
+-- :name populate_drawercontents
+INSERT INTO drawercontents (drawerid, snackid) VALUES (
+    1,
+    1
+),
+(
+    1,
+    3
+),
+(
+    3,
+    2
+)

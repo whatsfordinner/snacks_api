@@ -22,6 +22,8 @@ def pollute_db(database):
     connection.connect(f'sqlite:///{database}')
     connection.populate_snacks()
     connection.populate_users()
+    connection.populate_drawers()
+    connection.populate_drawercontents()
 
 def delete_snacks():
     app = snackdrawer.create_app()

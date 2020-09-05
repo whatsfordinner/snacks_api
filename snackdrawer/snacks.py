@@ -61,8 +61,8 @@ def get_all() -> list:
 
 def to_db(data: dict) -> dict:
     validate_data('new_snack', data)
-    if find_by_name(data["name"]) is None:
-        id = db.get_db().insert_snack(snack_name=data["name"])
+    if find_by_name(data['name']) is None:
+        id = db.get_db().insert_snack(snack_name=data['name'])
         return find_by_id(id)
     else:
         raise ValueError(f'snack with name "{data["name"]}" already exists')

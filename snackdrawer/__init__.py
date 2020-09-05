@@ -10,12 +10,6 @@ def create_app():
     app.config.from_mapping(
         SECRET_KEY='tasty_snacks',
         DATABASE=os.path.join(app.instance_path, 'snacks.sqlite'),
-        LAZY_WEB_SLOW=os.getenv('LAZY_WEB_SLOW'),
-        LAZY_WEB_ERROR=os.getenv('LAZY_WEB_ERROR'),
-        LAZY_DB_SLOW=os.getenv('LAZY_DB_SLOW'),
-        LAZY_DB_ERROR=os.getenv('LAZY_DB_ERROR'),
-        LAZY_UTIL_SLOW=os.getenv('LAZY_UTIL_SLOW'),
-        LAZY_UTIL_ERROR=os.getenv('LAZY_UTIL_ERROR')
     )
 
     try:

@@ -27,10 +27,6 @@ INSERT INTO drawers (name, userid) VALUES (
 (
     'bar',
     1
-),
-(
-    'baz',
-    2
 )
 
 -- :name populate_drawercontents
@@ -41,8 +37,4 @@ INSERT INTO drawercontents (drawerid, snackid) VALUES (
 (
     1,
     3
-),
-(
-    3,
-    2
 )

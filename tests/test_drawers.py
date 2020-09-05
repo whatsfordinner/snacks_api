@@ -43,28 +43,115 @@ class DrawersTestCase(unittest.TestCase):
         self.assertDictEqual(expect, result)
 
     def test_find_by_name_nonexistent(self):
-        pass
+        with self.app.app_context():
+            user_claims = {
+                'user': '1',
+                'role': 'user'
+            }
+
+            self.assertIsNone(drawers.find_by_name(user_claims, 'qux')) 
 
     def test_find_by_name_other_user(self):
-        pass
+        with self.app.app_context():
+            user_claims = {
+                'user': '2',
+                'role': 'user'
+            }
+
+            self.assertIsNone(drawers.find_by_name(user_claims, 'foo'))
 
     def test_find_by_id(self):
-        pass
+        with self.app.app_context():
+            user_claims = {
+                'user': '1',
+                'role': 'user'
+            }
+            expect = {
+                'id': 2,
+                'name': 'bar',
+                'contents': []
+            }
+            result = drawers.find_by_id(user_claims, 2)
+
+        self.assertDictEqual(expect, result)
+
+    def test_find_by_id_invalid(self):
+        with self.app.app_context():
+            user_claims = {
+                'user': '1',
+                'role': 'user'
+            }
+
+            self.assertIsNone(drawers.find_by_id(user_claims, -3))
 
     def test_find_by_id_nonexistent(self):
-        pass
+        with self.app.app_context():
+            user_claims = {
+                'user': '1',
+                'role': 'user'
+            }
+
+            self.assertIsNone(drawers.find_by_id(user_claims, 4))
 
     def test_find_by_id_other_user(self):
-        pass
+        with self.app.app_context():
+            user_claims = {
+                'user': '2',
+                'role': 'user'
+            }
+
+            self.assertIsNone(drawers.find_by_id(user_claims, 1))
 
     def test_get_user_drawers(self):
-        pass
+        with self.app.app_context():
+            user_claims = {
+                'user': '1',
+                'role': 'user'
+            }
+            expect = [
+                {
+                    'id': 1,
+                    'name': 'foo'
+                },
+                {
+                    'id': 2,
+                    'name': 'bar'
+                }
+            ]
+            result = drawers.get_user_drawers(user_claims)
+        
+        self.assertListEqual(expect, result)
 
     def test_get_user_drawers_no_drawers(self):
-        pass
+        with self.app.app_context():
+            user_claims = {
+                'user': '2',
+                'role': 'user'
+            }
+            expect = []
+            result = drawers.get_user_drawers(user_claims)
+        
+        self.assertListEqual(expect, result)
 
     def test_get_contents(self):
-        pass
+        with self.app.app_context():
+            expect = [
+                {
+                    'id': 1,
+                    'name': 'chips'
+                },
+                {
+                    'id': 3,
+                    'name': 'cookies'
+                }
+            ]
+            result = drawers.get_contents(1)
+
+        self.assertListEqual(expect, result)
 
     def test_get_contents_no_contents(self):
-        pass
+        with self.app.app_context():
+            expect = []
+            result = drawers.get_contents(2)
+        
+        self.assertListEqual(expect, result)

@@ -1,6 +1,6 @@
 import jsonschema
 from flask import abort, Blueprint, current_app, jsonify, make_response, request
-from snackdrawer import db
+from snackdrawer import db, snacks
 from snackdrawer.users import jwt_required
 from snackdrawer.validate import validate_data
 
@@ -58,7 +58,36 @@ def new_drawer(user_claims: dict) -> dict:
 @bp.route('/<int:drawer_id>', methods=['POST'])
 @jwt_required
 def add_snack_to_drawer(user_claims: dict, drawer_id: int) -> dict:
-    pass
+    if drawer_id < 1:
+        abort(400, 'drawer ID must be >= 1')
+    try:
+        request_data = request.get_json()
+        validate_data('add_snack_to_drawer', request_data)
+
+        drawer = find_by_id(user_claims, drawer_id)
+        if drawer is None:
+            raise abort(404, description=f'drawer with ID {drawer_id} does not exist')
+
+        snack_id = request_data['snack']
+        snack = snacks.find_by_id(snack_id)
+        if snack is None:
+            raise ValueError(f'snack with ID {snack_id} does not exist')
+        for content in get_contents(drawer_id):
+            if snack_id == content['id']:
+                raise ValueError(f'snack with ID {snack_id} already exists in drawer with ID {drawer_id}')
+
+        db.get_db().add_snack_to_drawer(drawer_id=drawer_id, snack_id=snack_id)
+
+    except ValueError as err:
+        abort(422, description=err)
+
+    except jsonschema.ValidationError as err:
+        abort(400, description=err.message)
+
+    return make_response(
+        jsonify(message='snack added to drawer'),
+        201
+    )
 
 def find_by_name(user_claims: dict, name: str) -> dict:
     user_id = int(user_claims['user'])

@@ -1,4 +1,5 @@
 .coverage
 .vscode
 __pycache__
+htmlcov
 instance

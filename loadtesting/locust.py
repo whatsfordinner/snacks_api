@@ -2,8 +2,7 @@ import json
 import random
 import string
 import time
-from locust import HttpUser, task, between, SequentialTaskSet, TaskSet
-from locust.exception import RescheduleTask
+from locust import HttpUser, task, between, SequentialTaskSet, TaskSet, exception
 
 class SnackdrawerUser(HttpUser):
     wait_time = between(1,3)
@@ -38,7 +37,7 @@ class SnackdrawerUser(HttpUser):
         ) as response:
             if response.status_code == 401:
                 self.auth_token = None
-                raise RescheduleTask()
+                raise exception.RescheduleTask()
     
     @task(3)
     def view_drawers(self):
@@ -54,7 +53,7 @@ class SnackdrawerUser(HttpUser):
         ) as response:
             if response.status_code == 401:
                 self.auth_token = None
-                raise RescheduleTask()
+                raise exception.RescheduleTask()
 
             drawers = json.loads(response.text)
             self.drawers = drawers['drawers']
@@ -83,7 +82,7 @@ class SnackdrawerUser(HttpUser):
 
             if response.status_code == 401:
                 self.auth_token = None
-                raise RescheduleTask()
+                raise exception.RescheduleTask()
 
     @task(1)
     def create_drawer(self):
@@ -104,7 +103,7 @@ class SnackdrawerUser(HttpUser):
 
             if response.status_code == 401:
                 self.auth_token = None
-                raise RescheduleTask()
+                raise exception.RescheduleTask()
 
     @task(3)
     def add_snack_to_drawer(self):
@@ -133,7 +132,7 @@ class SnackdrawerUser(HttpUser):
 
             if response.status_code == 401:
                 self.auth_token = None
-                raise RescheduleTask()
+                raise exception.RescheduleTask()
             
         contents = json.loads(response.text)
 
@@ -162,7 +161,7 @@ class SnackdrawerUser(HttpUser):
 
             if result.status_code == 401:
                 self.auth_token = None
-                raise RescheduleTask()
+                raise exception.RescheduleTask()
 
     def login(self):
         if self.user_created is False:

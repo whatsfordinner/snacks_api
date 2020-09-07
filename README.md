@@ -18,17 +18,14 @@ docker run -p 8000:8000 snackdrawer
 
 The API is powered by Flask and runs a SQLite DB
 
-## Workflow
+## API
 
-* A list of all snacks can be returned with `GET /snacks/`  
-* A specific snack can be returned with `GET /snacks/:snackid`  
-* A new user can be created with at `POST /auth/users` but users must have a unique username  
-* An existing user can get a JWT at `POST /auth/login`  
-* A new snack can be created at `POST /snacks` but it must have a unique name (requires a JWT)  
-* An existing user can view all their drawers at `GET /drawers/` (requires a JWT)  
-* An existing user can create a new drawer at `POST /drawers/` but it must have a unique name (requires a JWT)  
-* An existing user can view the contents of a specific drawer at `GET /drawers/:drawerid` (requires a JWT)  
-* An existing user can add a snack to a drawer at `POST /drawers/:drawerid` (requires a JWT)  
+The following endpoints are exposed:
+
+* `/auth/login`
+* `/auth/user`
+* `/drawers/`
+* `/snacks/`  
 
 ## Load Testing
 
@@ -42,8 +39,18 @@ locust --headless \
 -H http://localhost:8000
 ```
 
+The loadtesting has a single, rudimentary type of user who will:
+* Try and get lists of snacks  
+* Create a new user account  
+* Try and get their list of drawers  
+* Try and create new drawers  
+* Try and put snacks into their drawers  
+
+If the user gets a `HTTP 401` they'll try and create a new JWT and attempt the task again. Once loadtesting is complete you'll see output showing the statistics of the test.
+
 ## Wishlist
 
 If I get the basic bits working, I'd like to add:
 * switching data stores so comparative testing can be done  
 * fault injection with a lazy mode
+* different sorts of users (E.g. poorly behaved users who try and access other users' data, script kiddies, etc.)  

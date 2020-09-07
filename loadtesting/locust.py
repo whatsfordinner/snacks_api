@@ -3,6 +3,7 @@ import random
 import string
 import time
 from locust import HttpUser, task, between, SequentialTaskSet, TaskSet
+from locust.exception import RescheduleTask
 
 class SnackdrawerUser(HttpUser):
     wait_time = between(1,3)
@@ -25,46 +26,38 @@ class SnackdrawerUser(HttpUser):
         if self.auth_token is None:
             self.login()
         
-        try:
-            response = self.client.post(
-                '/snacks/',
-                json={
-                    'name': get_random_string()
-                },
-                headers={
-                    'x-access-token': self.auth_token
-                }
-            )
-
+        with self.client.post(
+            '/snacks/',
+            json={
+                'name': get_random_string()
+            },
+            headers={
+                'x-access-token': self.auth_token
+            },
+            catch_response=True
+        ) as response:
             if response.status_code == 401:
-                raise ValueError
-
-        except ValueError:
-            self.auth_token = None
-            self.add_snack()
+                self.auth_token = None
+                raise RescheduleTask()
     
     @task(3)
     def view_drawers(self):
         if self.auth_token is None:
             self.login()
 
-        try:
-            response = self.client.get(
-                '/drawers/',
-                headers={
-                    'x-access-token': self.auth_token
-                }
-            )
-
+        with self.client.get(
+            '/drawers/',
+            headers={
+                'x-access-token': self.auth_token
+            },
+            catch_response=True
+        ) as response:
             if response.status_code == 401:
-                raise ValueError
+                self.auth_token = None
+                raise RescheduleTask()
 
             drawers = json.loads(response.text)
             self.drawers = drawers['drawers']
-        
-        except ValueError:
-            self.auth_token = None
-            self.view_drawers()
 
     @task(2)
     def view_drawer(self):
@@ -78,45 +71,40 @@ class SnackdrawerUser(HttpUser):
             self.create_drawer()
             self.view_drawers()
 
-        try:
-            drawer = random.choice(self.drawers)['id']
-            response = self.client.get(
-                f'/drawers/{drawer}',
-                headers={
-                    'x-access-token': self.auth_token
-                }
-            )
+        drawer = random.choice(self.drawers)['id']
+        with self.client.get(
+            f'/drawers/{drawer}',
+            headers={
+                'x-access-token': self.auth_token
+            },
+            name='/drawers/:drawer_id',
+            catch_response=True
+        ) as response:
 
             if response.status_code == 401:
-                raise ValueError
-        
-        except ValueError:
-            self.auth_token = None
-            self.view_drawer()
+                self.auth_token = None
+                raise RescheduleTask()
 
     @task(1)
     def create_drawer(self):
         if self.auth_token is None:
             self.login()
         
-        try:
-            drawer_name = get_random_string()
-            result = self.client.post(
-                '/drawers/',
-                json={
-                    'name': drawer_name
-                },
-                headers={
-                    'x-access-token': self.auth_token
-                }
-            )
+        drawer_name = get_random_string()
+        with self.client.post(
+            '/drawers/',
+            json={
+                'name': drawer_name
+            },
+            headers={
+                'x-access-token': self.auth_token
+            },
+            catch_response=True
+        ) as response:
 
-            if result.status_code == 401:
-                raise ValueError
-
-        except ValueError:
-            self.auth_token = None
-            self.create_drawer()
+            if response.status_code == 401:
+                self.auth_token = None
+                raise RescheduleTask()
 
     @task(3)
     def add_snack_to_drawer(self):
@@ -133,46 +121,48 @@ class SnackdrawerUser(HttpUser):
         if self.snacks is None:
             self.view_snacks()
         
-        try:
-            drawer = random.choice(self.drawers)['id']
-            response = self.client.get(
-                f'/drawers/{drawer}',
-                headers={
-                    'x-access-token': self.auth_token
-                }
-            )
+        drawer = random.choice(self.drawers)['id']
+        with self.client.get(
+            f'/drawers/{drawer}',
+            headers={
+                'x-access-token': self.auth_token
+            },
+            name='/drawers/:drawer_id',
+            catch_response=True
+        ) as response:
 
             if response.status_code == 401:
-                raise ValueError
+                self.auth_token = None
+                raise RescheduleTask()
             
-            contents = json.loads(response.text)
+        contents = json.loads(response.text)
 
-            snack_id = None
-            for snack in self.snacks:
-                candidate = True
-                for content in contents['drawer']['contents']:
-                    if snack['id'] == content['id']:
-                        candidate = False
-                
-                if candidate == True:
-                    snack_id = snack['id']
-                    break
+        snack_id = None
+        for snack in self.snacks:
+            candidate = True
+            for content in contents['drawer']['contents']:
+                if snack['id'] == content['id']:
+                    candidate = False
+            
+            if candidate == True:
+                snack_id = snack['id']
+                break
 
-            result = self.client.post(
-                f'/drawers/{drawer}',
-                json={
-                    'snack': snack_id
-                },
-                headers={
-                    'x-access-token': self.auth_token
-                }
-            )
+        with self.client.post(
+            f'/drawers/{drawer}',
+            json={
+                'snack': snack_id
+            },
+            headers={
+                'x-access-token': self.auth_token
+            },
+            name='/drawers/:drawer_id',
+            catch_response=True
+        ) as result:
 
             if result.status_code == 401:
-                raise ValueError
-        except ValueError:
-            self.auth_token = None
-            self.add_snack_to_drawer()
+                self.auth_token = None
+                raise RescheduleTask()
 
     def login(self):
         if self.user_created is False:

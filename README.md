@@ -1,10 +1,22 @@
 # Snacks API
 
-A simple FLASK API to experiment with observability, metrics gathering and logging tools
+A simple REST API to experiment with observability, metrics gathering and logging tools
+
+## Running the API  
+The Docker image is built using [Buildpacks](https://buildpacks.io/):
+
+```
+pack build --builder heroku/buildpacks:18 snackdrawer
+```
+
+After the image has been built, it can be run with:
+```
+docker run -p 8000:8000 snackdrawer
+```
 
 ## Design
 
-The API is served by Flask and runs a SQLite DB
+The API is powered by Flask and runs a SQLite DB
 
 ## Workflow
 
@@ -18,13 +30,20 @@ The API is served by Flask and runs a SQLite DB
 * An existing user can view the contents of a specific drawer at `GET /drawers/:drawerid` (requires a JWT)  
 * An existing user can add a snack to a drawer at `POST /drawers/:drawerid` (requires a JWT)  
 
-## Load Testing - TODO
+## Load Testing
 
-Once the API is running, it can be load tested using locust
+Once the API is running, it can be load tested using [locust](https://locust.io/):
+
+```
+locust --headless \
+-f loadtesting/locust.py \
+--only-summary \
+-u 20 -r 1 -t 2m --stop-timeout 10s \
+-H http://localhost:8000
+```
 
 ## Wishlist
 
 If I get the basic bits working, I'd like to add:
-* locust.io load testing
 * switching data stores so comparative testing can be done  
 * fault injection with a lazy mode

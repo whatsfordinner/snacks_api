@@ -17,6 +17,7 @@ def close_db(e=None):
         db.disconnect()
 
 def init_db(app):
+    # pylint: disable=no-member
     db = pugsql.module('snackdrawer/queries/')
     db.connect(f'sqlite:///{app.config["DATABASE"]}')
     db.create_snacks()

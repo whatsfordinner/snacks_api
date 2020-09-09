@@ -1,7 +1,9 @@
-from flask import Flask, jsonify, make_response
+import logging
+from flask import Flask, jsonify, make_response, request
+from snackdrawer.prometheus import request_error_count
 
 def register_errors(app):
-    app.logger.info('registering error handlers')
+    app.logger.info('registering errors')
     app.register_error_handler(400, bad_request)
     app.register_error_handler(401, unauthorized)
     app.register_error_handler(404, resource_not_found)
@@ -26,6 +28,7 @@ def unprocessable_entity(error):
     return make_response(jsonify(error=str(error)), 422)
 
 def server_error(error):
+    request_error_count.labels(request.url_rule, request.method).inc()
     return make_response(jsonify(error=str(error)), 500)
 
 def method_not_implemented(error):

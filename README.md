@@ -6,7 +6,10 @@ A simple REST API to experiment with observability, metrics gathering and loggin
 The Docker image is built using [Buildpacks](https://buildpacks.io/):
 
 ```
-pack build --builder heroku/buildpacks:18 snackdrawer
+pack build \
+--env "prometheus_multiproc_dir=/tmp" \
+--builder heroku/buildpacks:18 \
+snackdrawer
 ```
 
 After the image has been built, it can be run with:
@@ -47,6 +50,10 @@ The loadtesting has a single, rudimentary type of user who will:
 * Try and put snacks into their drawers  
 
 If the user gets a `HTTP 401` they'll try and create a new JWT and attempt the task again. Once loadtesting is complete you'll see output showing the statistics of the test.
+
+## Prometheus Metrics
+
+Prometheus metrics are exported on `/metrics`
 
 ## Wishlist
 

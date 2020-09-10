@@ -11,10 +11,14 @@ pack build \
 snackdrawer
 ```
 
-After the image has been built, it can be run with:
+After the image has been built, a `docker-compose` stack that includes Prometheus and Grafana can be run:
 ```
-docker run -p 8000:8000 snackdrawer
+docker-compose -f local/docker-compose.yaml up -d
 ```
+
+The API is accessible at: `http://localhost:8000`  
+Prometheus is accessible at: `http://localhost:9090`
+Grafana is accessible at: `http://localhost:3000`
 
 ## Design
 
@@ -49,6 +53,8 @@ The loadtesting has a single, rudimentary type of user who will:
 * Try and put snacks into their drawers  
 
 If the user gets a `HTTP 401` they'll try and create a new JWT and attempt the task again. Once loadtesting is complete you'll see output showing the statistics of the test.
+
+A pre-configured Grafana dashboard will show API performance statistics
 
 ## Prometheus Metrics
 

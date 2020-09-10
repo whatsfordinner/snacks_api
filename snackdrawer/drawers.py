@@ -3,14 +3,14 @@ from flask import abort, Blueprint, current_app, jsonify, make_response, request
 from snackdrawer import db, snacks
 from snackdrawer.users import jwt_required
 from snackdrawer.validate import validate_data
-from snackdrawer.prometheus import request_summary, db_summary
+from snackdrawer.prometheus import request_histogram, db_histogram
 
 bp = Blueprint('drawers', __name__, url_prefix='/drawers')
 
 @bp.route('/', methods=['GET'])
 @jwt_required
 def get_drawers(user_claims: dict) -> list:
-    with request_summary.labels(request.url_rule, request.method).time():
+    with request_histogram.labels(request.url_rule, request.method).time():
         results = get_user_drawers(user_claims)
         return make_response(
             jsonify(drawers=results),
@@ -20,7 +20,7 @@ def get_drawers(user_claims: dict) -> list:
 @bp.route('/<int:drawer_id>', methods=['GET'])
 @jwt_required
 def get_drawer(user_claims: dict, drawer_id: int) -> dict:
-    with request_summary.labels(request.url_rule, request.method).time():
+    with request_histogram.labels(request.url_rule, request.method).time():
         if drawer_id < 1:
             abort(400, 'drawer ID must be >= 1')
         
@@ -37,14 +37,14 @@ def get_drawer(user_claims: dict, drawer_id: int) -> dict:
 @bp.route('/', methods=['POST'])
 @jwt_required
 def new_drawer(user_claims: dict) -> dict:
-    with request_summary.labels(request.url_rule, request.method).time():
+    with request_histogram.labels(request.url_rule, request.method).time():
         try:
             user_id = int(user_claims['user'])
             request_data = request.get_json()
             validate_data('new_drawer', request_data)
             drawer_name = request_data['name']
             if find_by_name(user_claims, request_data['name']) is None:
-                with db_summary.labels('create_new_drawer').time():
+                with db_histogram.labels('create_new_drawer').time():
                     new_id = db.get_db().create_new_drawer(user_id=user_id, drawer_name=drawer_name)
                 new_drawer = find_by_id(user_claims, new_id)
             else:
@@ -63,7 +63,7 @@ def new_drawer(user_claims: dict) -> dict:
 @bp.route('/<int:drawer_id>', methods=['POST'])
 @jwt_required
 def add_snack_to_drawer(user_claims: dict, drawer_id: int) -> dict:
-    with request_summary.labels(request.url_rule, request.method).time():
+    with request_histogram.labels(request.url_rule, request.method).time():
         if drawer_id < 1:
             abort(400, 'drawer ID must be >= 1')
         try:
@@ -97,12 +97,12 @@ def add_snack_to_drawer(user_claims: dict, drawer_id: int) -> dict:
 
 def find_by_name(user_claims: dict, name: str) -> dict:
     user_id = int(user_claims['user'])
-    with db_summary.labels('get_drawer_by_name_and_userid').time():
+    with db_histogram.labels('get_drawer_by_name_and_userid').time():
         return db.get_db().get_drawer_by_name_and_userid(user_id=user_id, drawer_name=name)
 
 def find_by_id(user_claims: dict, id: int) -> dict:
     user_id = int(user_claims['user'])
-    with db_summary.labels('get_drawer_by_id_and_userid').time():
+    with db_histogram.labels('get_drawer_by_id_and_userid').time():
         drawer = db.get_db().get_drawer_by_id_and_userid(user_id=user_id, drawer_id=id)
 
     if drawer is None:
@@ -115,7 +115,7 @@ def find_by_id(user_claims: dict, id: int) -> dict:
 def get_user_drawers(user_claims: dict) -> list:
     drawers = []
     user_id = int(user_claims['user'])
-    with db_summary.labels('get_drawers_by_userid').time():
+    with db_histogram.labels('get_drawers_by_userid').time():
         results = db.get_db().get_drawers_by_userid(user_id=user_id)
     for result in results:
         drawers.append({
@@ -127,7 +127,7 @@ def get_user_drawers(user_claims: dict) -> list:
 
 def get_contents(drawer_id: int) -> list:
     snacks = []
-    with db_summary.labels('get_snacks_in_drawer').time():
+    with db_histogram.labels('get_snacks_in_drawer').time():
         results = db.get_db().get_snacks_in_drawer(drawer_id=drawer_id)
     for result in results:
             snacks.append(result)

@@ -7,7 +7,6 @@ The Docker image is built using [Buildpacks](https://buildpacks.io/):
 
 ```
 pack build \
---env "prometheus_multiproc_dir=/tmp" \
 --builder heroku/buildpacks:18 \
 snackdrawer
 ```

@@ -1,6 +1,7 @@
 from flask import make_response
 from prometheus_client import (
     Summary,
+    Histogram,
     Counter,
     multiprocess,
     generate_latest,
@@ -8,16 +9,10 @@ from prometheus_client import (
     CONTENT_TYPE_LATEST
 )
 
-request_summary = Summary(
-    'snackdrawer_api_requests',
-    'Summary of REST API requests',
+request_histogram = Histogram(
+    'api_requests',
+    'Histogram of REST API requests',
     ['endpoint', 'method']
-)
-
-db_summary = Summary(
-    'snackdrawer_db_requests',
-    'Summary of DB requests',
-    ['query_type']
 )
 
 request_error_count = Counter(
@@ -26,9 +21,15 @@ request_error_count = Counter(
     ['endpoint', 'method']
 )
 
-auth_summary = Summary(
-    'snackdrawer_auth_requests',
-    'Summary of auth operations',
+db_histogram = Histogram(
+    'db_requests',
+    'Histogram of DB requests',
+    ['query_type']
+)
+
+auth_histogram = Histogram(
+    'auth_requests',
+    'Histogram of auth operations',
     ['operation']
 )
 

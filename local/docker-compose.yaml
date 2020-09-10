@@ -1,0 +1,22 @@
+version: "3"
+services:
+  snackdrawer:
+    image: snackdrawer:latest
+    ports:
+    - 8000:8000
+    environment:
+      prometheus_multiproc_dir: /tmp
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+    - 9090:9090
+    volumes:
+    - ./prometheus/prometheus.yaml:/etc/prometheus/prometheus.yml
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+    - 3000:3000
+    volumes:
+    - ./grafana/datasource.yaml:/etc/grafana/provisioning/datasources/datasource.yaml
+    - ./grafana/dashboard.yaml:/etc/grafana/provisioning/dashboards/dashboard.yaml
+    - ./grafana/dashboards/p95.json:/var/lib/grafana/dashboards/p95.json

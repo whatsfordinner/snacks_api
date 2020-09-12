@@ -6,50 +6,50 @@ from flask import abort, Blueprint, current_app, jsonify, make_response, request
 from functools import wraps
 from passlib.apps import custom_app_context
 from snackdrawer import db
-from snackdrawer.prometheus import auth_histogram, request_histogram, db_histogram
+from snackdrawer.prometheus import time_request, time_auth, db_histogram
 from snackdrawer.validate import validate_data
 
 bp = Blueprint('users', __name__, url_prefix='/auth')
 
 @bp.route('/users', methods=['POST'])
+@time_request
 def new_user() -> dict:
-    with request_histogram.labels(request.url_rule, request.method).time():
-        try:
-            request_data = request.get_json()
-            result = add_new_user(request_data)
-        
-        except ValueError as err:
-            abort(422, description=err)
-        
-        except jsonschema.ValidationError as err:
-            abort(400, err.message)
+    try:
+        request_data = request.get_json()
+        result = add_new_user(request_data)
+    
+    except ValueError as err:
+        abort(422, description=err)
+    
+    except jsonschema.ValidationError as err:
+        abort(400, err.message)
 
-        return make_response(
-            jsonify(
-                id=result['id'],
-                username=result['username']
-            ),
-            201
-        )
+    return make_response(
+        jsonify(
+            id=result['id'],
+            username=result['username']
+        ),
+        201
+    )
 
 @bp.route('/login', methods=['POST'])
+@time_request
 def validate_user() -> dict:
-    with request_histogram.labels(request.url_rule, request.method).time():
-        try:
-            request_data = request.get_json()
-            user = verify_credentials(request_data)
-            new_jwt = generate_jwt(user['id'], current_app.config['SECRET_KEY'])
+    try:
+        request_data = request.get_json()
+        user = verify_credentials(request_data)
+        new_jwt = generate_jwt(user['id'], current_app.config['SECRET_KEY'])
 
-        except ValueError as err:
-            abort(401, description=err)
-        
-        except jsonschema.ValidationError as err:
-            abort(400, description=err.message)
-        
-        return make_response(
-            jsonify(token=new_jwt.decode('UTF-8')),
-            201
-        )
+    except ValueError as err:
+        abort(401, description=err)
+    
+    except jsonschema.ValidationError as err:
+        abort(400, description=err.message)
+    
+    return make_response(
+        jsonify(token=new_jwt.decode('UTF-8')),
+        201
+    )
     
 
 def find_by_username(username: str, include_hash=False) -> dict:
@@ -66,6 +66,7 @@ def find_by_userid(id: int, include_hash=False) -> dict:
     with db_histogram.labels('get_user_by_userid_no_hash').time():
         return db.get_db().get_user_no_hash(user_id=id)
 
+@time_auth
 def verify_credentials(data: dict) -> dict:
     validate_data('user_login', data)
     claimed_user = find_by_username(data['username'], include_hash=True)
@@ -73,12 +74,11 @@ def verify_credentials(data: dict) -> dict:
     if claimed_user is None:
         raise ValueError(f'username or password incorrect')
 
-    with auth_histogram.labels('verify_credentials').time():
-        if custom_app_context.verify(data['password'], claimed_user['password_hash']):
-            claimed_user.pop('password_hash', None)
-            return claimed_user
-        else:
-            raise ValueError('username or password incorrect')
+    if custom_app_context.verify(data['password'], claimed_user['password_hash']):
+        claimed_user.pop('password_hash', None)
+        return claimed_user
+    else:
+        raise ValueError('username or password incorrect')
 
 def add_new_user(data: dict) -> dict:
     validate_data('new_user', data)
@@ -90,29 +90,29 @@ def add_new_user(data: dict) -> dict:
     else:
         raise ValueError('username taken')
     
+@time_auth
 def generate_jwt(user_id, secret):
-    with auth_histogram.labels('generate_jwt').time():
-        jwt_payload = {
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=30),
-            'iat': datetime.datetime.utcnow(),
-            'aud': 'snackdrawer',
-            'user': str(user_id),
-            'role': 'user'
-        }
+    jwt_payload = {
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=30),
+        'iat': datetime.datetime.utcnow(),
+        'aud': 'snackdrawer',
+        'user': str(user_id),
+        'role': 'user'
+    }
 
-        return jwt.encode(
-            jwt_payload,
-            secret,
-            algorithm='HS256'
-        )
+    return jwt.encode(
+        jwt_payload,
+        secret,
+        algorithm='HS256'
+    )
 
+@time_auth
 def validate_jwt(jwt_payload, secret) -> dict:
-    with auth_histogram.labels('validate_jwt').time():
-        decoded = jwt.decode(jwt_payload, secret, audience='snackdrawer', algorithms=['HS256'])
-        return {
-            'user': int(decoded['user']),
-            'role': decoded['role']
-        }
+    decoded = jwt.decode(jwt_payload, secret, audience='snackdrawer', algorithms=['HS256'])
+    return {
+        'user': int(decoded['user']),
+        'role': decoded['role']
+    }
 
 def jwt_required(f):
     @wraps(f)

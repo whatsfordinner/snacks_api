@@ -1,4 +1,5 @@
-from flask import make_response
+from flask import make_response, request
+from functools import wraps
 from prometheus_client import (
     Summary,
     Histogram,
@@ -47,3 +48,17 @@ def export_metrics():
     }
 
     return response
+
+def time_request(f):
+    @wraps(f)
+    def decorator(*args, **kwargs):
+        with request_histogram.labels(request.url_rule, request.method).time():
+            return f(*args, **kwargs)
+    return decorator
+
+def time_auth(f):
+    @wraps(f)
+    def decorator(*args, **kwargs):
+        with auth_histogram.labels(f.__name__).time():
+            return f(*args, **kwargs)
+    return decorator

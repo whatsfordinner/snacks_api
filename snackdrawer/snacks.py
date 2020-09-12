@@ -1,54 +1,54 @@
 import jsonschema
 from flask import abort, Blueprint, current_app, jsonify, make_response, request
 from snackdrawer import db
-from snackdrawer.prometheus import request_histogram, db_histogram
+from snackdrawer.prometheus import time_request, db_histogram
 from snackdrawer.users import jwt_required
 from snackdrawer.validate import validate_data
 
 bp = Blueprint('snacks', __name__, url_prefix='/snacks')
 
 @bp.route('/', methods=['GET'])
+@time_request
 def get_snacks() -> dict:
-    with request_histogram.labels(request.url_rule, request.method).time():
-        results = get_all()
-        return make_response(
-            jsonify(snacks=results),
-            200
-        )
+    results = get_all()
+    return make_response(
+        jsonify(snacks=results),
+        200
+    )
 
 @bp.route('/<int:snack_id>', methods=['GET'])
+@time_request
 def get_snack(snack_id: int) -> dict:
-    with request_histogram.labels(request.url_rule, request.method).time():
-        if snack_id < 1:
-            abort(400, 'snack ID must be >= 1')
+    if snack_id < 1:
+        abort(400, 'snack ID must be >= 1')
 
-        result = find_by_id(snack_id)
+    result = find_by_id(snack_id)
 
-        if result is None:
-            abort(404, f'snack with ID == {snack_id} not found')
-        
-        return make_response(
-            jsonify(snack=result),
-            200
-        )
+    if result is None:
+        abort(404, f'snack with ID == {snack_id} not found')
+    
+    return make_response(
+        jsonify(snack=result),
+        200
+    )
         
 @bp.route('/', methods=['POST'])
+@time_request
 @jwt_required
 def new_snack(user_claims) -> dict:
-    with request_histogram.labels(request.url_rule, request.method).time():
-        try:
-            request_data = request.get_json()
-            result = to_db(request_data)
-        
-        except ValueError as err:
-            abort(422, description=err)
-        
-        except jsonschema.ValidationError as err:
-            abort(400, err.message)
-        
-        return make_response(
-            jsonify(snack=result),
-            201)
+    try:
+        request_data = request.get_json()
+        result = to_db(request_data)
+    
+    except ValueError as err:
+        abort(422, description=err)
+    
+    except jsonschema.ValidationError as err:
+        abort(400, err.message)
+    
+    return make_response(
+        jsonify(snack=result),
+        201)
 
 def find_by_name(name: str) -> object:
     with db_histogram.labels('get_snack_by_name').time():

@@ -17,7 +17,7 @@ docker-compose -f local/docker-compose.yaml up -d
 ```
 
 The API is accessible at: `http://localhost:8000`  
-Prometheus is accessible at: `http://localhost:9090`
+Prometheus is accessible at: `http://localhost:9090`  
 Grafana is accessible at: `http://localhost:3000`
 
 ## Design
@@ -63,6 +63,5 @@ Prometheus metrics are exported on `/metrics`
 ## Wishlist
 
 If I get the basic bits working, I'd like to add:
-* switching data stores so comparative testing can be done  
 * fault injection with a lazy mode
 * different sorts of users (E.g. poorly behaved users who try and access other users' data, script kiddies, etc.)  

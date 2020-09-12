@@ -81,7 +81,7 @@ class SnackdrawerDB():
             else:
                 return self.db.get_user_by_username_no_hash(username=username)
 
-    def insert_user(self, username: str, password_hash: str) -> int:
+    def add_user(self, username: str, password_hash: str) -> int:
         return self.db.insert_user(username=username, password_hash=password_hash)
 
     def get_drawers(self, user_id: int=None, drawer_name: str=None) -> list:

@@ -5,7 +5,7 @@ import logging
 import snackdrawer
 import unittest
 from flask import jsonify, make_response
-from snackdrawer import users
+from snackdrawer import db, users
 from tests.test_fixtures import sqlite_db
 
 class RoutesTestCase(unittest.TestCase):
@@ -13,8 +13,10 @@ class RoutesTestCase(unittest.TestCase):
         logging.disable(logging.CRITICAL)
         self.app = snackdrawer.create_app()
         self.client = self.app.test_client()
-        sqlite_db.purge_db()
-        sqlite_db.pollute_db(self.app.config['DATABASE'])
+        with self.app.app_context():
+            db.get_db().drop_db()
+            db.get_db().init_db()
+        sqlite_db.populate_db(f'sqlite:///{self.app.config["DATABASE"]}')
 
     def tearDown(self):
         pass
@@ -119,48 +121,14 @@ class UsersTestCase(unittest.TestCase):
         logging.disable(logging.CRITICAL)
         self.app = snackdrawer.create_app()
         self.client = self.app.test_client()
-        sqlite_db.purge_db()
-        sqlite_db.pollute_db(self.app.config['DATABASE'])
+        with self.app.app_context():
+            db.get_db().drop_db()
+            db.get_db().init_db()
+        sqlite_db.populate_db(f'sqlite:///{self.app.config["DATABASE"]}')
 
     def tearDown(self):
         pass
 
-    def test_find_by_username(self):
-        with self.app.app_context():
-            expect = {
-                'id': 1,
-                'username': 'foobar',
-                'password_hash': '$6$rounds=656000$DA2b7/HB7pXEwOUS$jW9EAxnXxG6Oj6prBoXh8p2dJNQYSKGgRu5xaYf6Z49bITqcF3/Yzf0YAjmpjTLPOErXyq7PZ6HLDprxhBO3s1'
-            }
-            result = users.find_by_username('foobar', include_hash=True)
-            self.assertDictEqual(expect, result)
-            
-            expect.pop('password_hash', None)
-            result = users.find_by_username('foobar')
-            self.assertDictEqual(expect, result)
-
-    def test_find_by_username_nonexistent(self):
-        with self.app.app_context():
-            self.assertIsNone(users.find_by_username('beetles'))
-
-    def test_find_by_id(self):
-        with self.app.app_context():
-            expect = {
-                'id': 1,
-                'username': 'foobar',
-                'password_hash': '$6$rounds=656000$DA2b7/HB7pXEwOUS$jW9EAxnXxG6Oj6prBoXh8p2dJNQYSKGgRu5xaYf6Z49bITqcF3/Yzf0YAjmpjTLPOErXyq7PZ6HLDprxhBO3s1'
-            }
-            result = users.find_by_userid(1, include_hash=True)
-            self.assertDictEqual(expect, result)
-            
-            expect.pop('password_hash', None)
-            result = users.find_by_userid(1)
-            self.assertDictEqual(expect, result)
-
-    def test_find_by_id_nonexistent(self):
-        with self.app.app_context():
-            self.assertIsNone(users.find_by_userid(5))
-    
     def test_verify_credentials(self):
         with self.app.app_context():
             data = {
@@ -306,8 +274,7 @@ class JwtTestCase(unittest.TestCase):
         self.app = snackdrawer.create_app()
         self.client = self.app.test_client()
         self.app.add_url_rule('/test','example_func', self.example_func, methods=['POST'])
-        sqlite_db.purge_db()
-        sqlite_db.pollute_db(self.app.config['DATABASE'])
+
 
     def tearDown(self):
         pass

@@ -50,26 +50,11 @@ def validate_user() -> dict:
         jsonify(token=new_jwt.decode('UTF-8')),
         201
     )
-    
-
-def find_by_username(username: str, include_hash=False) -> dict:
-    if include_hash:
-        with db_histogram.labels('get_user_by_username').time():
-            return db.get_db().get_user_by_username(username=username)
-    with db_histogram.labels('get_user_by_username_no_hash').time():
-        return db.get_db().get_user_by_username_no_hash(username=username)
-
-def find_by_userid(id: int, include_hash=False) -> dict:
-    if include_hash:
-        with db_histogram.labels('get_user_by_userid').time():
-            return db.get_db().get_user(user_id=id)
-    with db_histogram.labels('get_user_by_userid_no_hash').time():
-        return db.get_db().get_user_no_hash(user_id=id)
 
 @time_auth
 def verify_credentials(data: dict) -> dict:
     validate_data('user_login', data)
-    claimed_user = find_by_username(data['username'], include_hash=True)
+    claimed_user = db.get_db().get_user(username=data['username'], hash=True)
 
     if claimed_user is None:
         raise ValueError(f'username or password incorrect')
@@ -82,11 +67,11 @@ def verify_credentials(data: dict) -> dict:
 
 def add_new_user(data: dict) -> dict:
     validate_data('new_user', data)
-    if find_by_username(data['username']) is None:
+    if db.get_db().get_user(username=data['username']) is None:
         password_hash = custom_app_context.hash(data['password'])
         with db_histogram.labels('insert_user').time():
-            id = db.get_db().insert_user(username=data['username'], password_hash=password_hash)
-        return find_by_userid(id)
+            id = db.get_db().add_user(data['username'], password_hash)
+        return db.get_db().get_user(user_id=id)
     else:
         raise ValueError('username taken')
     

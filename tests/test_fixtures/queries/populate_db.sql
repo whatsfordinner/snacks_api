@@ -38,3 +38,6 @@ INSERT INTO drawercontents (drawerid, snackid) VALUES (
     1,
     3
 )
+
+-- :name delete_all_snacks
+DELETE FROM snacks

@@ -2,7 +2,7 @@ import jsonschema
 import logging
 import snackdrawer
 import unittest
-from snackdrawer import drawers
+from snackdrawer import db, drawers
 from snackdrawer.users import generate_jwt
 from tests.test_fixtures import sqlite_db
 
@@ -11,8 +11,10 @@ class RoutesTestCase(unittest.TestCase):
         logging.disable(logging.CRITICAL)
         self.app = snackdrawer.create_app()
         self.client = self.app.test_client()
-        sqlite_db.purge_db()
-        sqlite_db.pollute_db(self.app.config['DATABASE'])
+        with self.app.app_context():
+            db.get_db().drop_db()
+            db.get_db().init_db()
+        sqlite_db.populate_db(f'sqlite:///{self.app.config["DATABASE"]}')
     
     def tearDown(self):
         pass
@@ -326,43 +328,13 @@ class DrawersTestCase(unittest.TestCase):
         logging.disable(logging.CRITICAL)
         self.app = snackdrawer.create_app()
         self.client = self.app.test_client()
-        sqlite_db.purge_db()
-        sqlite_db.pollute_db(self.app.config['DATABASE'])
+        with self.app.app_context():
+            db.get_db().drop_db()
+            db.get_db().init_db()
+        sqlite_db.populate_db(f'sqlite:///{self.app.config["DATABASE"]}')
 
     def tearDown(self):
         pass
-
-    def test_find_by_name(self):
-        with self.app.app_context():
-            user_claims = {
-                'user': '1',
-                'role': 'user'
-            }
-            expect = {
-                'id': 1,
-                'name': 'foo'
-            }
-            result = drawers.find_by_name(user_claims, 'foo')
-
-        self.assertDictEqual(expect, result)
-
-    def test_find_by_name_nonexistent(self):
-        with self.app.app_context():
-            user_claims = {
-                'user': '1',
-                'role': 'user'
-            }
-
-            self.assertIsNone(drawers.find_by_name(user_claims, 'qux')) 
-
-    def test_find_by_name_other_user(self):
-        with self.app.app_context():
-            user_claims = {
-                'user': '2',
-                'role': 'user'
-            }
-
-            self.assertIsNone(drawers.find_by_name(user_claims, 'foo'))
 
     def test_find_by_id(self):
         with self.app.app_context():
@@ -405,57 +377,3 @@ class DrawersTestCase(unittest.TestCase):
             }
 
             self.assertIsNone(drawers.find_by_id(user_claims, 1))
-
-    def test_get_user_drawers(self):
-        with self.app.app_context():
-            user_claims = {
-                'user': '1',
-                'role': 'user'
-            }
-            expect = [
-                {
-                    'id': 1,
-                    'name': 'foo'
-                },
-                {
-                    'id': 2,
-                    'name': 'bar'
-                }
-            ]
-            result = drawers.get_user_drawers(user_claims)
-        
-        self.assertListEqual(expect, result)
-
-    def test_get_user_drawers_no_drawers(self):
-        with self.app.app_context():
-            user_claims = {
-                'user': '2',
-                'role': 'user'
-            }
-            expect = []
-            result = drawers.get_user_drawers(user_claims)
-        
-        self.assertListEqual(expect, result)
-
-    def test_get_contents(self):
-        with self.app.app_context():
-            expect = [
-                {
-                    'id': 1,
-                    'name': 'chips'
-                },
-                {
-                    'id': 3,
-                    'name': 'cookies'
-                }
-            ]
-            result = drawers.get_contents(1)
-
-        self.assertListEqual(expect, result)
-
-    def test_get_contents_no_contents(self):
-        with self.app.app_context():
-            expect = []
-            result = drawers.get_contents(2)
-        
-        self.assertListEqual(expect, result)

@@ -2,7 +2,7 @@
 SELECT * FROM drawers
 
 -- :name get_drawers_by_userid :many
-SELECT * FROM drawers WHERE userid = :user_id
+SELECT id, name FROM drawers WHERE userid = :user_id
 
 -- :name get_drawers_by_name :many
 SELECT * FROM drawers WHERE name = :drawer_name

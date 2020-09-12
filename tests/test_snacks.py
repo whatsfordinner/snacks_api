@@ -2,7 +2,7 @@ import jsonschema
 import logging
 import snackdrawer
 import unittest
-from snackdrawer import snacks
+from snackdrawer import db,snacks
 from snackdrawer.users import generate_jwt
 from tests.test_fixtures import sqlite_db
 
@@ -11,8 +11,10 @@ class RoutesTestCase(unittest.TestCase):
         logging.disable(logging.CRITICAL)
         self.app = snackdrawer.create_app()
         self.client = self.app.test_client()
-        sqlite_db.purge_db()
-        sqlite_db.pollute_db(self.app.config['DATABASE'])
+        with self.app.app_context():
+            db.get_db().drop_db()
+            db.get_db().init_db()
+        sqlite_db.populate_db(f'sqlite:///{self.app.config["DATABASE"]}')
 
     def tearDown(self):
         pass
@@ -40,7 +42,7 @@ class RoutesTestCase(unittest.TestCase):
         self.assertDictEqual(expect, result.get_json())
 
     def test_get_empty_snacks(self):
-        sqlite_db.delete_snacks()
+        sqlite_db.delete_snacks(f'sqlite:///{self.app.config["DATABASE"]}')
         expect = {'snacks':[]}
         
         result = self.client.get('/snacks/')
@@ -131,72 +133,14 @@ class SnacksTestCase(unittest.TestCase):
         logging.disable(logging.CRITICAL)
         self.app = snackdrawer.create_app()
         self.client = self.app.test_client()
-        sqlite_db.purge_db()
-        sqlite_db.pollute_db(self.app.config['DATABASE'])
+        with self.app.app_context():
+            db.get_db().drop_db()
+            db.get_db().init_db()
+        sqlite_db.populate_db(f'sqlite:///{self.app.config["DATABASE"]}')
 
     def tearDown(self):
         pass
 
-    def test_find_by_name(self):
-        with self.app.app_context():
-            expect = {
-                'id': 1,
-                'name': 'chips'
-            }
-            result = snacks.find_by_name('chips')
-
-        self.assertDictEqual(expect, result)
-
-    def test_find_by_name_nonexistent(self):
-        with self.app.app_context():
-            self.assertIsNone(snacks.find_by_name('pretzels'))
-    
-    def test_find_by_id(self):
-        with self.app.app_context():
-            expect = {
-                'id': 2,
-                'name': 'chocolate'
-            }
-            result = snacks.find_by_id(2)
-
-        self.assertEqual(expect, result)
-
-    def test_find_by_id_nonexistent(self):
-        with self.app.app_context():
-            self.assertIsNone(snacks.find_by_id(9))
-
-    def test_find_by_id_invalid(self):
-        with self.app.app_context():
-            self.assertIsNone(snacks.find_by_id(-1))
-
-    def test_get_all_empty(self):
-        sqlite_db.delete_snacks()
-        with self.app.app_context():
-            expect = []
-            result = snacks.get_all()
-
-        self.assertListEqual(expect, result)
-
-    def test_get_all(self):
-        with self.app.app_context():
-            expect = [
-                {
-                    'id': 1,
-                    'name': 'chips'
-                },
-                {
-                    'id': 2,
-                    'name': 'chocolate'
-                },
-                {
-                    'id': 3,
-                    'name': 'cookies'
-                }
-            ]
-            result = snacks.get_all()
-
-        self.assertListEqual(expect, result)
-    
     def test_to_db(self):
         with self.app.app_context():
             data = {
@@ -209,7 +153,7 @@ class SnacksTestCase(unittest.TestCase):
             result = snacks.to_db(data)
 
             self.assertEqual(expect, result)
-            self.assertEqual(result, snacks.find_by_id(result['id']))
+            self.assertEqual(result, db.get_db().get_snack(snack_id=result['id']))
 
     def test_to_db_already_exists(self):
         with self.app.app_context():

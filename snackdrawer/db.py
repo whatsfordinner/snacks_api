@@ -4,9 +4,10 @@ from flask import current_app, g
 
 def get_db():
     if 'db' not in g:
-        conn = pugsql.module('snackdrawer/queries/')
-        conn.connect(f'sqlite:///{current_app.config["DATABASE"]}')
-        g.db = conn
+        g.db = SnackdrawerDB(
+            'snackdrawer/queries',
+            f'sqlite:///{current_app.config["DATABASE"]}'
+        )
     
     return g.db
 
@@ -17,13 +18,11 @@ def close_db(e=None):
         db.disconnect()
 
 def init_db(app):
-    # pylint: disable=no-member
-    db = pugsql.module('snackdrawer/queries/')
-    db.connect(f'sqlite:///{app.config["DATABASE"]}')
-    db.create_snacks()
-    db.create_users()
-    db.create_drawers()
-    db.create_drawercontents()
+    db = SnackdrawerDB(
+        'snackdrawer/queries',
+        f'sqlite:///{app.config["DATABASE"]}'
+    )
+    db.init_db()
     db.disconnect()
 
 def init_app(app):
@@ -105,6 +104,9 @@ class SnackdrawerDB():
             return self.db.get_drawer_by_name_and_userid(user_id=user_id, drawer_name=drawer_name)
         else:
             return None
+
+    def add_drawer(self, user_id: int, drawer_name: str) -> int:
+        return self.db.create_new_drawer(user_id=user_id, drawer_name=drawer_name)
 
     def get_drawer_snacks(self, drawer_id: int) -> list:
         snacks = []

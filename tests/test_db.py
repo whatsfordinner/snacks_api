@@ -133,13 +133,11 @@ class DBTestCase(unittest.TestCase):
         expect = [
             {
                 'id': 1,
-                'name': 'foo',
-                'userid': 1
+                'name': 'foo'
             },
             {
                 'id': 2,
-                'name': 'bar',
-                'userid': 1
+                'name': 'bar'
             }
         ]
         result = self.db.get_drawers(user_id=1)
@@ -231,3 +229,12 @@ class DBTestCase(unittest.TestCase):
         self.db.add_snack_to_drawer(2, 2)
         result = self.db.get_drawer_snacks(2)
         self.assertListEqual(expect, result)
+
+    def test_add_drawer(self):
+        expect = {
+            'id': 3,
+            'name': 'baz'
+        }
+        self.db.add_drawer(2, 'baz')
+        result = self.db.get_drawer(2, drawer_name='baz')
+        self.assertDictEqual(expect, result)

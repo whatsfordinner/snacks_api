@@ -4,3 +4,4 @@ __pycache__
 htmlcov
 instance
 prom
+tests/test.sqlite

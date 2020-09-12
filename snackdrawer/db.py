@@ -28,3 +28,91 @@ def init_db(app):
 
 def init_app(app):
     app.teardown_appcontext(close_db)
+
+class SnackdrawerDB():
+    # pylint: disable=no-member
+    def __init__(self, query_dir, connection_string):
+        self.db = pugsql.module(query_dir)
+        self.db.connect(connection_string)
+
+    def disconnect(self) -> None:
+        self.db.disconnect()
+
+    def init_db(self) -> None:
+        self.db.create_snacks()
+        self.db.create_users()
+        self.db.create_drawers()
+        self.db.create_drawercontents()
+    
+    def drop_db(self) -> None:
+        self.db.drop_snacks()
+        self.db.drop_users()
+        self.db.drop_drawers()
+        self.db.drop_drawercontents()
+
+    def get_snacks(self) -> list:
+        snacks = []
+        result = self.db.get_snacks()
+        for row in result:
+            snacks.append(row)
+        
+        return snacks
+    
+    def get_snack(self, snack_id: int=None, snack_name: str=None) -> dict:
+        if snack_id is not None:
+            return self.db.get_snack(snack_id=snack_id)
+        elif snack_name is not None:
+            return self.db.get_snack_by_name(snack_name=snack_name)
+        else:
+            return None
+
+    def add_snack(self, snack_name: str) -> int:
+        return self.db.insert_snack(snack_name=snack_name)
+
+    def get_user(self, user_id: int=None, username: str=None, hash: bool=False) -> dict:
+        if user_id is not None:
+            if hash:
+                return self.db.get_user(user_id=user_id)
+            else:
+                return self.db.get_user_no_hash(user_id=user_id)
+        elif username is not None:
+            if hash:
+                return self.db.get_user_by_username(username=username)
+            else:
+                return self.db.get_user_by_username_no_hash(username=username)
+
+    def insert_user(self, username: str, password_hash: str) -> int:
+        return self.db.insert_user(username=username, password_hash=password_hash)
+
+    def get_drawers(self, user_id: int=None, drawer_name: str=None) -> list:
+        drawers = []
+        if user_id is not None:
+            result = self.db.get_drawers_by_userid(user_id=user_id)
+        elif drawer_name is not None:
+            result = self.db.get_drawers_by_name(drawer_name=drawer_name)
+        else:
+            result = self.db.get_drawers()
+        
+        for row in result:
+            drawers.append(row)
+        
+        return drawers
+
+    def get_drawer(self, user_id: int, drawer_id: int=None, drawer_name: str=None) -> dict:
+        if drawer_id is not None:
+            return self.db.get_drawer_by_id_and_userid(user_id=user_id, drawer_id=drawer_id)
+        elif drawer_name is not None:
+            return self.db.get_drawer_by_name_and_userid(user_id=user_id, drawer_name=drawer_name)
+        else:
+            return None
+
+    def get_drawer_snacks(self, drawer_id: int) -> list:
+        snacks = []
+        result = self.db.get_snacks_in_drawer(drawer_id=drawer_id)
+        for row in result:
+            snacks.append(row)
+
+        return snacks
+
+    def add_snack_to_drawer(self, drawer_id: int, snack_id: int) -> int:
+        self.db.add_snack_to_drawer(drawer_id=drawer_id, snack_id=snack_id)

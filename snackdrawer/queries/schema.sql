@@ -1,5 +1,5 @@
 -- :name drop_snacks
-DROP TABLE snacks
+DROP TABLE IF EXISTS snacks
 
 -- :name delete_all_snacks
 DELETE FROM snacks
@@ -11,10 +11,10 @@ CREATE TABLE IF NOT EXISTS snacks (
 )
 
 -- :name drop_users
-DROP TABLE users
+DROP TABLE IF EXISTS users
 
 -- :name delete_all_users
-DROP TABLE users
+DROP FROM users
 
 -- :name create_users
 CREATE TABLE IF NOT EXISTS users (
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS users (
 )
 
 -- :name drop_drawers
-DROP TABLE drawers
+DROP TABLE IF EXISTS drawers
 
 -- :name delete_all_drawers
 DELETE FROM drawers
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS drawers (
 )
 
 -- :name drop_drawercontents
-DROP TABLE drawercontents
+DROP TABLE IF EXISTS drawercontents
 
 -- :name delete_all_drawercontents
 DELETE FROM drawercontents

@@ -1,3 +1,6 @@
+-- :name get_drawers :many
+SELECT * FROM drawers
+
 -- :name get_drawers_by_userid :many
 SELECT * FROM drawers WHERE userid = :user_id
 

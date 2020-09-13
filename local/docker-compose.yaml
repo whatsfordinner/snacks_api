@@ -5,6 +5,7 @@ services:
     ports:
     - 8000:8000
     environment:
+      HONEYCOMB_API_KEY: 
       prometheus_multiproc_dir: /tmp
   prometheus:
     image: prom/prometheus:latest

@@ -16,6 +16,7 @@ passlib = "*"
 pyjwt = "*"
 gunicorn = "*"
 prometheus-client = "*"
+honeycomb-beeline = "*"
 
 [requires]
 python_version = "3.8"

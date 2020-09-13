@@ -1,5 +1,7 @@
-from logging.config import dictConfig
+import beeline
 import os
+from logging.config import dictConfig
+from beeline.middleware.flask import HoneyMiddleware
 from flask import Flask
 from snackdrawer import db, drawers, errors, snacks, users
 from snackdrawer.prometheus import export_metrics
@@ -13,7 +15,16 @@ def create_app():
     app.config.from_mapping(
         SECRET_KEY='tasty_snacks',
         DATABASE=os.path.join(app.instance_path, 'snacks.sqlite'),
+        HONEYCOMB_API_KEY=os.getenv('HONEYCOMB_API_KEY')
     )
+
+    if app.config['HONEYCOMB_API_KEY'] is not None:
+        beeline.init(
+            writekey=app.config['HONEYCOMB_API_KEY'],
+            dataset='Snackdrawer',
+            service_name='snackdrawer-api'
+        )
+        HoneyMiddleware(app, db_events=True)
 
     try:
         os.makedirs(app.instance_path)

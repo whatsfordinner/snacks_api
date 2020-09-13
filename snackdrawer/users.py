@@ -60,15 +60,15 @@ def verify_credentials(data: dict) -> dict:
     claimed_user = db.get_db().get_user(username=data['username'], hash=True)
 
     if claimed_user is None:
-        beeline.add_context_field('result', 'user_not_found')
+        beeline.add_context_field('result', 'FAIL_user_not_found')
         raise ValueError(f'username or password incorrect')
 
     if custom_app_context.verify(data['password'], claimed_user['password_hash']):
         claimed_user.pop('password_hash', None)
-        beeline.add_context_field('result', 'user_verified')
+        beeline.add_context_field('result', 'SUCCESS_user_verified')
         return claimed_user
     else:
-        beeline.add_context_field('result', 'password_incorrect')
+        beeline.add_context_field('result', 'FAIL_password_incorrect')
         raise ValueError('username or password incorrect')
 
 @beeline.traced(name='creating_user')
@@ -80,10 +80,10 @@ def add_new_user(data: dict) -> dict:
         with db_histogram.labels('insert_user').time():
             id = db.get_db().add_user(data['username'], password_hash)
         beeline.add_context_field('user_id', id)
-        beeline.add_context_field('result', 'user_created')
+        beeline.add_context_field('result', 'SUCCESS_user_created')
         return db.get_db().get_user(user_id=id)
     else:
-        beeline.add_context_field('result', 'username_taken')
+        beeline.add_context_field('result', 'FAIL_username_taken')
         raise ValueError('username taken')
     
 @beeline.traced(name='generating_jwt')

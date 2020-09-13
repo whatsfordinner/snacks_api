@@ -1,3 +1,4 @@
+import beeline
 import jsonschema
 from flask import abort, Blueprint, current_app, jsonify, make_response, request
 from snackdrawer import db
@@ -50,11 +51,15 @@ def new_snack(user_claims) -> dict:
         jsonify(snack=result),
         201)
 
+@beeline.traced(name='add_snack_to_db')
 def to_db(data: dict) -> dict:
     validate_data('new_snack', data)
+    beeline.add_context_field('snack_name', data['name'])
     if db.get_db().get_snack(snack_name=data['name']) is None:
         with db_histogram.labels('insert_snack').time():
             id = db.get_db().add_snack(snack_name=data['name'])
+        beeline.add_context_field('result', 'SUCCESS_snack_created')
         return db.get_db().get_snack(snack_id=id)
     else:
+        beeline.add_context_field('result', 'FAIL_snack_exists')
         raise ValueError(f'snack with name "{data["name"]}" already exists')

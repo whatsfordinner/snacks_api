@@ -1,3 +1,4 @@
+import beeline
 import logging
 import pugsql
 from flask import current_app, g
@@ -31,10 +32,12 @@ def init_app(app):
 
 class SnackdrawerDB():
     # pylint: disable=no-member
+    @beeline.traced(name='connecting_to_db')
     def __init__(self, query_dir, connection_string):
         self.db = pugsql.module(query_dir)
         self.db.connect(connection_string)
 
+    @beeline.traced(name='disconnecting_from_db')
     def disconnect(self) -> None:
         self.db.disconnect()
 

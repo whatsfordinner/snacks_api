@@ -41,7 +41,7 @@ Once the API is running, it can be load tested using [locust](https://locust.io/
 locust --headless \
 -f loadtesting/locust.py \
 --only-summary \
--u 20 -r 1 -t 2m --stop-timeout 10s \
+-u 20 -r 1 -t 2m --stop-timeout 10 \
 -H http://localhost:8000
 ```
 

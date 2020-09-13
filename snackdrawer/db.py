@@ -1,6 +1,7 @@
 import logging
 import pugsql
 from flask import current_app, g
+from snackdrawer.prometheus import time_db
 
 def get_db():
     if 'db' not in g:
@@ -49,6 +50,7 @@ class SnackdrawerDB():
         self.db.drop_drawers()
         self.db.drop_drawercontents()
 
+    @time_db
     def get_snacks(self) -> list:
         snacks = []
         result = self.db.get_snacks()
@@ -57,6 +59,7 @@ class SnackdrawerDB():
         
         return snacks
     
+    @time_db
     def get_snack(self, snack_id: int=None, snack_name: str=None) -> dict:
         if snack_id is not None:
             return self.db.get_snack(snack_id=snack_id)
@@ -65,9 +68,11 @@ class SnackdrawerDB():
         else:
             return None
 
+    @time_db
     def add_snack(self, snack_name: str) -> int:
         return self.db.insert_snack(snack_name=snack_name)
 
+    @time_db
     def get_user(self, user_id: int=None, username: str=None, hash: bool=False) -> dict:
         if user_id is not None:
             if hash:
@@ -80,9 +85,11 @@ class SnackdrawerDB():
             else:
                 return self.db.get_user_by_username_no_hash(username=username)
 
+    @time_db
     def add_user(self, username: str, password_hash: str) -> int:
         return self.db.insert_user(username=username, password_hash=password_hash)
 
+    @time_db
     def get_drawers(self, user_id: int=None, drawer_name: str=None) -> list:
         drawers = []
         if user_id is not None:
@@ -97,6 +104,7 @@ class SnackdrawerDB():
         
         return drawers
 
+    @time_db
     def get_drawer(self, user_id: int, drawer_id: int=None, drawer_name: str=None) -> dict:
         if drawer_id is not None:
             return self.db.get_drawer_by_id_and_userid(user_id=user_id, drawer_id=drawer_id)
@@ -108,6 +116,7 @@ class SnackdrawerDB():
     def add_drawer(self, user_id: int, drawer_name: str) -> int:
         return self.db.create_new_drawer(user_id=user_id, drawer_name=drawer_name)
 
+    @time_db
     def get_drawer_snacks(self, drawer_id: int) -> list:
         snacks = []
         result = self.db.get_snacks_in_drawer(drawer_id=drawer_id)
@@ -116,5 +125,6 @@ class SnackdrawerDB():
 
         return snacks
 
+    @time_db
     def add_snack_to_drawer(self, drawer_id: int, snack_id: int) -> int:
         self.db.add_snack_to_drawer(drawer_id=drawer_id, snack_id=snack_id)

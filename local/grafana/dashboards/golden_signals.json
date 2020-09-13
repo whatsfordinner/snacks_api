@@ -23,7 +23,6 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": null,
-      "description": "P95 response times for queries to the /auth endpoints",
       "fieldConfig": {
         "defaults": {
           "custom": {}
@@ -63,17 +62,23 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum(rate(api_requests_bucket{endpoint=~\"/auth/.*\"}[5m])) by (le, endpoint, method))",
+          "expr": "histogram_quantile(0.95, sum(rate(api_requests_bucket[5m])) by (le))",
           "interval": "",
-          "legendFormat": "",
+          "legendFormat": "p95 API latency",
           "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(db_requests_bucket[5m])) by (le))",
+          "interval": "",
+          "legendFormat": "p95 DB latency",
+          "refId": "B"
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "p95 /auth",
+      "title": "Latency",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -89,7 +94,6 @@
       },
       "yaxes": [
         {
-          "$$hashKey": "object:93",
           "format": "s",
           "label": null,
           "logBase": 1,
@@ -98,7 +102,6 @@
           "show": true
         },
         {
-          "$$hashKey": "object:94",
           "format": "short",
           "label": null,
           "logBase": 1,
@@ -157,17 +160,24 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum(rate(db_requests_bucket{query_type=~\".*(add|insert).*\"}[5m])) by (le, query_type))",
+          "expr": "active_api_requests",
+          "instant": false,
           "interval": "",
-          "legendFormat": "{{query_type}}",
+          "legendFormat": "Active API requests",
           "refId": "A"
+        },
+        {
+          "expr": "active_db_queries",
+          "interval": "",
+          "legendFormat": "Active DB queries",
+          "refId": "B"
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "p95 DB Write Operations",
+      "title": "Capacity",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -183,8 +193,7 @@
       },
       "yaxes": [
         {
-          "$$hashKey": "object:99",
-          "format": "s",
+          "format": "short",
           "label": null,
           "logBase": 1,
           "max": null,
@@ -192,7 +201,6 @@
           "show": true
         },
         {
-          "$$hashKey": "object:100",
           "format": "short",
           "label": null,
           "logBase": 1,
@@ -212,7 +220,7 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": null,
-      "description": "P95 response times for the /snacks endpoints",
+      "description": "Number of requests or queries per minute",
       "fieldConfig": {
         "defaults": {
           "custom": {}
@@ -225,6 +233,106 @@
         "h": 8,
         "w": 12,
         "x": 0,
+        "y": 8
+      },
+      "hiddenSeries": false,
+      "id": 2,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 2,
+      "nullPointMode": "null",
+      "percentage": false,
+      "pluginVersion": "7.1.5",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "sum(rate(api_requests_count{job=\"snackdrawer\"}[1m]))",
+          "interval": "",
+          "legendFormat": "API Requests",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(db_requests_count{job=\"snackdrawer\"}[1m]))",
+          "interval": "",
+          "legendFormat": "DB Queries",
+          "refId": "B"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Throughput",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:452",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "$$hashKey": "object:453",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
         "y": 8
       },
       "hiddenSeries": false,
@@ -252,9 +360,9 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum(rate(api_requests_bucket{endpoint=~\"/snacks/.*\"}[5m])) by (le, method, endpoint))",
+          "expr": "rate(request_error_count[5m])/sum(rate(api_requests_count{job=\"snackdrawer\"}[5m]))",
           "interval": "",
-          "legendFormat": "",
+          "legendFormat": "Error Rate",
           "refId": "A"
         }
       ],
@@ -262,7 +370,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "p95 /snacks",
+      "title": "Errors",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -278,8 +386,7 @@
       },
       "yaxes": [
         {
-          "$$hashKey": "object:143",
-          "format": "s",
+          "format": "percentunit",
           "label": null,
           "logBase": 1,
           "max": null,
@@ -287,307 +394,6 @@
           "show": true
         },
         {
-          "$$hashKey": "object:144",
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": null,
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
-      },
-      "fill": 0,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 8
-      },
-      "hiddenSeries": false,
-      "id": 10,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 2,
-      "nullPointMode": "null as zero",
-      "percentage": false,
-      "pluginVersion": "7.1.5",
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.95, sum(rate(db_requests_bucket{query_type=~\".*get.*\"}[5m])) by (le, query_type))",
-          "interval": "",
-          "legendFormat": "{{query_type}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "p95 DB Read Opeartions",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "$$hashKey": "object:202",
-          "format": "s",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": "0",
-          "show": true
-        },
-        {
-          "$$hashKey": "object:203",
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "Prometheus",
-      "description": "P95 response times for the /drawers endpoints",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "fill": 0,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 7,
-        "w": 12,
-        "x": 0,
-        "y": 16
-      },
-      "hiddenSeries": false,
-      "id": 2,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 2,
-      "nullPointMode": "null as zero",
-      "percentage": false,
-      "pluginVersion": "7.1.5",
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.95, sum (rate(api_requests_bucket{endpoint=~\"/drawers/.*\"}[5m])) by (le,endpoint,method))",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "{{method}} {{endpoint}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "p95 /drawers",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "$$hashKey": "object:193",
-          "format": "s",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": "0",
-          "show": true
-        },
-        {
-          "$$hashKey": "object:194",
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": null,
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
-      },
-      "fill": 0,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 16
-      },
-      "hiddenSeries": false,
-      "id": 12,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 2,
-      "nullPointMode": "null as zero",
-      "percentage": false,
-      "pluginVersion": "7.1.5",
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.95, sum(rate(auth_requests_bucket[5m])) by (le, operation))",
-          "interval": "",
-          "legendFormat": "{{operation}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "p95 Auth Operations",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "$$hashKey": "object:305",
-          "format": "s",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": "0",
-          "show": true
-        },
-        {
-          "$$hashKey": "object:306",
           "format": "short",
           "label": null,
           "logBase": 1,
@@ -628,7 +434,7 @@
     ]
   },
   "timezone": "",
-  "title": "Snackdrawer Performance",
-  "uid": "AFu-1qvGz",
+  "title": "Snackdrawer Golden Signals",
+  "uid": "7hdKG4dGz",
   "version": 1
 }

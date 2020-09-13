@@ -4,10 +4,17 @@ from prometheus_client import (
     Summary,
     Histogram,
     Counter,
+    Gauge,
     multiprocess,
     generate_latest,
     CollectorRegistry,
     CONTENT_TYPE_LATEST
+)
+
+request_gauge = Gauge(
+    'active_api_requests',
+    'Counter of active REST API requests',
+    multiprocess_mode='livesum'
 )
 
 request_histogram = Histogram(
@@ -20,6 +27,12 @@ request_error_count = Counter(
     'snackdrawer_api_errors',
     'Count of REST API errors',
     ['endpoint', 'method']
+)
+
+db_gauge = Gauge(
+    'active_db_queries',
+    'Counter of active DB queries',
+    multiprocess_mode='livesum'
 )
 
 db_histogram = Histogram(
@@ -53,7 +66,8 @@ def time_request(f):
     @wraps(f)
     def decorator(*args, **kwargs):
         with request_histogram.labels(request.url_rule, request.method).time():
-            return f(*args, **kwargs)
+            with request_gauge.track_inprogress():
+                return f(*args, **kwargs)
     return decorator
 
 def time_auth(f):
@@ -61,4 +75,12 @@ def time_auth(f):
     def decorator(*args, **kwargs):
         with auth_histogram.labels(f.__name__).time():
             return f(*args, **kwargs)
+    return decorator
+
+def time_db(f):
+    @wraps(f)
+    def decorator(*args, **kwargs):
+        with db_histogram.labels(f.__name__).time():
+            with db_gauge.track_inprogress():
+                return f(*args, **kwargs)
     return decorator

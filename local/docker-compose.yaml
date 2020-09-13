@@ -19,4 +19,4 @@ services:
     volumes:
     - ./grafana/datasource.yaml:/etc/grafana/provisioning/datasources/datasource.yaml
     - ./grafana/dashboard.yaml:/etc/grafana/provisioning/dashboards/dashboard.yaml
-    - ./grafana/dashboards/p95.json:/var/lib/grafana/dashboards/p95.json
+    - ./grafana/dashboards:/var/lib/grafana/dashboards

@@ -63,7 +63,10 @@ def verify_credentials(data: dict) -> dict:
         beeline.add_context_field('result', 'FAIL_user_not_found')
         raise ValueError(f'username or password incorrect')
 
-    if custom_app_context.verify(data['password'], claimed_user['password_hash']):
+    with beeline.tracer(name='comparing_password_with_hash'):
+        password_matches = custom_app_context.verify(data['password'], claimed_user['password_hash'])
+
+    if password_matches:
         claimed_user.pop('password_hash', None)
         beeline.add_context_field('result', 'SUCCESS_user_verified')
         return claimed_user
@@ -76,9 +79,9 @@ def add_new_user(data: dict) -> dict:
     validate_data('new_user', data)
     beeline.add_context_field('username', data['username'])
     if db.get_db().get_user(username=data['username']) is None:
-        password_hash = custom_app_context.hash(data['password'])
-        with db_histogram.labels('insert_user').time():
-            id = db.get_db().add_user(data['username'], password_hash)
+        with beeline.tracer(name='hashing_password'):
+            password_hash = custom_app_context.hash(data['password'])
+        id = db.get_db().add_user(data['username'], password_hash)
         beeline.add_context_field('user_id', id)
         beeline.add_context_field('result', 'SUCCESS_user_created')
         return db.get_db().get_user(user_id=id)

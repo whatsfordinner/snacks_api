@@ -1,3 +1,4 @@
+import beeline
 import jsonschema
 from flask import abort, Blueprint, current_app, jsonify, make_response, request
 from snackdrawer import db, snacks
@@ -11,6 +12,7 @@ bp = Blueprint('drawers', __name__, url_prefix='/drawers')
 @time_request
 @jwt_required
 def get_drawers(user_claims: dict) -> list:
+    beeline.add_context_field('user_id', user_claims['user'])
     results = db.get_db().get_drawers(user_id=user_claims['user'])
     return make_response(
         jsonify(drawers=results),
@@ -21,6 +23,7 @@ def get_drawers(user_claims: dict) -> list:
 @time_request
 @jwt_required
 def get_drawer(user_claims: dict, drawer_id: int) -> dict:
+    beeline.add_context_field('user_id', user_claims['user'])
     if drawer_id < 1:
         abort(400, 'drawer ID must be >= 1')
     
@@ -38,6 +41,7 @@ def get_drawer(user_claims: dict, drawer_id: int) -> dict:
 @time_request
 @jwt_required
 def new_drawer(user_claims: dict) -> dict:
+    beeline.add_context_field('user_id', user_claims['user'])
     try:
         user_id = int(user_claims['user'])
         request_data = request.get_json()
@@ -63,6 +67,7 @@ def new_drawer(user_claims: dict) -> dict:
 @time_request
 @jwt_required
 def add_snack_to_drawer(user_claims: dict, drawer_id: int) -> dict:
+    beeline.add_context_field('user_id', user_claims['user'])
     if drawer_id < 1:
         abort(400, 'drawer ID must be >= 1')
     try:

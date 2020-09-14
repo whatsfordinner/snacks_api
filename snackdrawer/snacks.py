@@ -37,6 +37,7 @@ def get_snack(snack_id: int) -> dict:
 @time_request
 @jwt_required
 def new_snack(user_claims) -> dict:
+    beeline.add_context_field('user_id', user_claims['user'])
     try:
         request_data = request.get_json()
         result = to_db(request_data)

@@ -89,5 +89,6 @@ Honeycomb's Python Beeline is used to automatically instrument most of the app. 
 ## Wishlist
 
 If I get the basic bits working, I'd like to add:
+* better Honeycomb instrumentation  
 * fault injection with a lazy mode
 * different sorts of users (E.g. poorly behaved users who try and access other users' data, script kiddies, etc.)  
